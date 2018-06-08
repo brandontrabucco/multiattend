@@ -2,7 +2,7 @@
 # Reset working directory #
 ###########################
 import os, sys
-os.chdir("/home/brand/Research/multifaceted_attention")
+os.chdir("/home/btrabucco/research/multiattend")
 ###########################
 # MultiAttend Package.... #
 ###########################

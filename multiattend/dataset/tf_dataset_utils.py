@@ -2,7 +2,7 @@
 # Reset working directory #
 ###########################
 import os
-os.chdir("/home/brand/Research/multifaceted_attention")
+os.chdir("/home/btrabucco/research/multiattend")
 ###########################
 # MultiAttend Package.... #
 ###########################
@@ -18,6 +18,10 @@ class TFDatasetUtils(object):
             self,
             config):
         self.config = config
+        for f in config.train_dataset:
+            assert tf.gfile.Exists(f), "Training dataset not found at '%s'."%f
+        for f in config.val_dataset:
+            assert tf.gfile.Exists(f), "Validation dataset not found at '%s'."%f
 
     def tokenize_example(self, example):
         return tf.one_hot(
@@ -40,7 +44,8 @@ class TFDatasetUtils(object):
         x_inputs =  tf.stack(columns[:self.config.dataset_columns])
         x_labels =  tf.stack(columns[self.config.dataset_columns:])
         token_inputs = self.tokenize_example(x_inputs)
-        return token_inputs, x_labels
+        token_labels = self.tokenize_example(x_labels)
+        return token_inputs, token_labels
 
     def generate_batch(
             self, 

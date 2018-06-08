@@ -2,7 +2,7 @@
 # Reset working directory #
 ###########################
 import os
-os.chdir("/home/brand/Research/multifaceted_attention")
+os.chdir("/home/btrabucco/research/multiattend")
 ###########################
 # MultiAttend Package.... #
 ###########################
@@ -31,20 +31,7 @@ class TFDataset(object):
             token_labels,
             args.train_instances,
             args.train_instances // args.min_ratio)
-        return (
-            tf.concat([
-                inputs_batch,
-                tf.zeros([
-                    args.batch_size,
-                    args.dataset_columns,
-                    args.dataset_range])],
-                1),
-            tf.concat([
-                tf.zeros([
-                    args.batch_size,
-                    args.dataset_columns], dtype=tf.int32),
-                labels_batch],
-                1))
+        return (inputs_batch, labels_batch)
 
     def get_val_batch(
             self):
@@ -59,20 +46,7 @@ class TFDataset(object):
             token_labels,
             args.val_instances,
             args.val_instances // args.min_ratio)
-        return (
-            tf.concat([
-                inputs_batch,
-                tf.zeros([
-                    args.batch_size,
-                    args.dataset_columns,
-                    args.dataset_range])],
-                1),
-            tf.concat([
-                tf.zeros([
-                    args.batch_size,
-                    args.dataset_columns], dtype=tf.int32),
-                labels_batch],
-                1))
+        return (inputs_batch, labels_batch)
 
     def __call__(
             self):
