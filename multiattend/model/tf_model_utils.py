@@ -19,6 +19,7 @@ class TFModelUtils(object):
             self,
             config):
         self.config = config
+        assert self.config.encoder_depth == self.config.decoder_depth
 
     def load_dataset_fn(
             self,
@@ -57,11 +58,11 @@ class TFModelUtils(object):
 
             self.attend_weights = tf.get_variable(
                 "attend_weights",
-                shape=[self.config.encoder_depth + (2 * self.config.decoder_depth), 1],
+                shape=[self.config.encoder_depth + (2 * self.config.decoder_depth)],
                 initializer=tf.truncated_normal_initializer())
             self.attend_biases = tf.get_variable(
                 "attend_biases",
-                shape=[1, 1, 1],
+                shape=[1, 1],
                 initializer=tf.constant_initializer(1.0))
 
             self.decoder_lstm_fw = tf.contrib.rnn.DropoutWrapper(
@@ -123,12 +124,16 @@ class TFModelUtils(object):
                     [1, self.config.dataset_columns, 1]),
                 tensor_encoded], axis=-1)
 
+            print(tensor_combined.shape)
             tensor_attend = tf.nn.softmax(
                 (tf.tensordot(
                     tensor_combined, 
                     self.attend_weights, 
                     1) + self.attend_biases),
                 axis=-1)
+            tensor_attend = tf.reshape(
+                tensor_attend, 
+                [self.config.batch_size, self.config.dataset_columns, 1])
 
             tensor_context = tf.reduce_sum(
                 tensor_encoded * tf.tile(
@@ -155,21 +160,12 @@ class TFModelUtils(object):
                     self.attend(
                         tensor_encoded))
                 
-                # Standard fw LSTM to sequence without attention
-                #output, self.decoder_state_fw = self.decoder_lstm_fw(
-                 #   tf.squeeze(
-                  #      tf.slice(tensor_encoded, 
-                   #         [0, self.config.dataset_columns - 1, 0], 
-                    #        [self.config.batch_size, 1, self.config.encoder_depth])),
-                    #self.decoder_state_fw)
-                #tensor_decoded.append(output)
-                
             tensor_decoded = tf.reshape(
                 tf.stack(tensor_decoded), 
                 [self.config.batch_size, self.config.dataset_columns, self.config.decoder_depth])
 
             tensor_logits = (tf.tensordot(
-                tensor_decoded, 
+                tensor_encoded, 
                 self.decode_weights, 
                 1) + self.decode_biases)
             tensor_probs = tf.nn.softmax(
