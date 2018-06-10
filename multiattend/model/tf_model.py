@@ -31,7 +31,7 @@ class TFModel(object):
                 self.inputs_batch)
             self.tensor_logits, self.tensor_probs = self.tf_model_utils.decode(
                 self.tensor_encoded)
-            self.loss = self.tf_model_utils.softmax_cross_entropy(
+            self.loss = self.tf_model_utils.loss_function(
                 self.tensor_logits, 
                 self.labels_batch)
             self.gradient = self.tf_model_utils.gradient(
@@ -39,7 +39,7 @@ class TFModel(object):
             self.tf_model_utils.finalize_graph()
             self.graph_is_built = True
         self.tf_model_utils.run_initialize()
-
+            
     def train(
             self,
             num_iterations):
@@ -69,6 +69,8 @@ class TFModel(object):
                 correct_predictions += 1
         actual_accuracy = correct_predictions / total_predictions
         
+        np.set_printoptions(precision=1)
+        
         print(
             "Iteration: %d" % actual_step,
             "Loss: %.2f" % actual_loss, 
@@ -78,6 +80,33 @@ class TFModel(object):
             "Label: %s" % str(actual_labels[0, :]))
         return {
             "loss": actual_loss, 
+            "accuracy": actual_accuracy, 
+            "inputs": actual_inputs, 
+            "probs": actual_probs,
+            "labels": actual_labels}
+    
+    def test(
+            self):
+        (actual_inputs,
+            actual_probs, 
+            actual_labels) = self.tf_model_utils.run_operation([
+                self.inputs_batch, 
+                self.tensor_probs, 
+                self.labels_batch], iterations=1)
+        actual_inputs = np.argmax(actual_inputs, axis=-1)
+        actual_probs = np.argmax(actual_probs, axis=-1)
+        actual_labels = np.argmax(actual_labels, axis=-1)
+        
+        correct_predictions = 0
+        total_predictions = 0
+        for a, b in zip(
+                actual_probs.flatten().tolist(), 
+                actual_labels.flatten().tolist()):
+            total_predictions += 1
+            if a == b:
+                correct_predictions += 1
+        actual_accuracy = correct_predictions / total_predictions
+        return {
             "accuracy": actual_accuracy, 
             "inputs": actual_inputs, 
             "probs": actual_probs,

@@ -72,4 +72,20 @@ class TFExperiment(object):
         plt.grid(True)
         plt.savefig("plots/" + str(datetime.now()) + "_training_accuracy.png")
         
+    def test(
+            self):
+        args = self.register.parse_args()
+        
+        working_accuracies = []
+        self.tf_model.initialize(
+            self.tf_dataset.get_training_batch)
+
+        for i in range(args.num_tests):
+            results = self.tf_model.test()
+            working_accuracies += [results["accuracy"]]
+                
+        final_accuracy = sum(working_accuracies) / len(working_accuracies)
+        print("Final Accuracy: %.2f" % final_accuracy)
+        return final_accuracy
+        
         
